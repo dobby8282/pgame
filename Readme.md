@@ -20,6 +20,7 @@ pip install pillow  # 이미지 처리용 (선택사항)
 ```python
 import pygame
 import sys
+import os
 
 # 초기화
 pygame.init()
@@ -37,12 +38,56 @@ GOLD = (255, 215, 0)
 DARK_BLUE = (25, 25, 112)
 GRAY = (50, 50, 50)
 
+
+def get_korean_font(size):
+    """한글을 지원하는 폰트를 찾아서 반환합니다."""
+    # Windows
+    if os.name == 'nt':
+        font_names = ['malgun.ttf', 'gulim.ttc', 'batang.ttc', 'dotum.ttc']
+        for font_name in font_names:
+            try:
+                font_path = os.path.join('C:/Windows/Fonts', font_name)
+                if os.path.exists(font_path):
+                    return pygame.font.Font(font_path, size)
+            except:
+                continue
+
+    # macOS
+    elif os.name == 'posix' and 'darwin' in os.uname().sysname.lower():
+        font_names = ['AppleGothic.ttf', 'AppleMyungjo.ttf']
+        for font_name in font_names:
+            try:
+                font_path = os.path.join('/System/Library/Fonts/Supplemental', font_name)
+                if os.path.exists(font_path):
+                    return pygame.font.Font(font_path, size)
+            except:
+                continue
+
+    # Linux 또는 기타
+    else:
+        try:
+            # 시스템에서 한글 폰트 찾기
+            font = pygame.font.SysFont('nanumgothic,nanumbarungothic,dejavusans', size)
+            return font
+        except:
+            pass
+
+    # 모든 시도가 실패하면 기본 폰트 사용 (한글이 깨질 수 있음)
+    try:
+        return pygame.font.SysFont('arial', size)
+    except:
+        return pygame.font.Font(None, size)
+
+
 class Game:
     def __init__(self):
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("저승사자 뱀서라이크 게임")
         self.clock = pygame.time.Clock()
-        
+
+        # 한글 폰트 설정
+        self.font = get_korean_font(36)
+
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -51,32 +96,32 @@ class Game:
                 if event.key == pygame.K_ESCAPE:
                     return False
         return True
-    
+
     def update(self, dt):
         pass
-    
+
     def draw(self):
         self.screen.fill(GRAY)
-        
-        # 테스트용 텍스트
-        font = pygame.font.Font(None, 36)
-        text = font.render("저승사자 게임 - 1단계", True, WHITE)
-        text_rect = text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
+
+        # 테스트용 텍스트 (한글 지원)
+        text = self.font.render("저승사자 게임 - 1단계", True, WHITE)
+        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
         self.screen.blit(text, text_rect)
-        
+
         pygame.display.flip()
-    
+
     def run(self):
         running = True
         while running:
             dt = self.clock.tick(FPS) / 1000.0
-            
+
             running = self.handle_events()
             self.update(dt)
             self.draw()
-        
+
         pygame.quit()
         sys.exit()
+
 
 if __name__ == "__main__":
     game = Game()
